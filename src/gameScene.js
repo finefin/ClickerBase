@@ -4,15 +4,18 @@ export default class gameScene extends Phaser.Scene {
   }
 
   preload () {
-
     this.load.image	('btn', 'assets/ButtonGrey.png');
-
   }
 
   init() {
     this.counter = new LargeNumber('0');
     this.multiplier = new LargeNumber('1');
     this.incrementValue = new LargeNumber('1');
+    this.autoInterval = 1000;
+    this.countInterval;
+
+
+    this.arbCounter = 0;
   }
 
   create() {
@@ -51,13 +54,8 @@ export default class gameScene extends Phaser.Scene {
     .setInteractive({useHandCursor:true})
     .setOrigin(0.5)
     .on("pointerdown", function(pointer) {
-      this.counter.increment( this.incrementValue.getValue() );
 
-      if (this.counter.getValue() > 1000000000) {
-        this.numberText.text = this.counter.getValueInENotation();
-      } else {
-        this.numberText.text = this.counter.getValue();
-      }
+        this.incrMainCounter ();
 
     }, this);
     this.incrementBtnTxt = this.add.text(
@@ -72,6 +70,8 @@ export default class gameScene extends Phaser.Scene {
       }
     )
     this.incrementBtnTxt.setOrigin(0.5)
+
+
 
     this.multiBtn = this.add.image(centerX, centerY + 100, 'btn')
     .setInteractive({useHandCursor:true})
@@ -103,8 +103,44 @@ export default class gameScene extends Phaser.Scene {
     this.multiBtnTxt.setOrigin(0.5)
 
 
+    this.autoBtn = this.add.image(centerX, centerY + 200, 'btn')
+          .setInteractive({useHandCursor:true})
+          .setOrigin(0.5)
+          .on("pointerdown", function(pointer) {
+            this.autoInterval -= (this.autoInterval * 0.01);
+            if (this.autoInterval < 66) this.autoInterval = 1; // max every 2nd frame
+            this.setAutoCounter ( this.autoInterval );
+          }, this);
+    this.autoBtnTxt = this.add.text(
+        this.autoBtn.x,
+        this.autoBtn.y,
+        "AUTOCLICK",
+        {
+          align: 'center',
+          fontFamily: gameConfig.defaultFont,
+          color: '#000000',
+          fontSize: '18px'
+        }
+    )
+    this.autoBtnTxt.setOrigin(0.5)
+
   }
 
+  incrMainCounter () {
+    this.counter.increment( this.incrementValue.getValue() );
+    if (this.counter.getValue() > 1000000000) {
+      this.numberText.text = this.counter.getValueInENotation();
+    } else {
+      this.numberText.text = this.counter.getValue();
+    }
+  }
+
+  setAutoCounter ( newInterval ) {
+    if (this.countInterval != undefined) clearInterval( this.countInterval );
+    this.countInterval = setInterval ( ()=> {
+      this.incrMainCounter();
+    }, newInterval, this)
+  }
 
   update () {
 
