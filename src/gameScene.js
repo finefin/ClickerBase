@@ -5,6 +5,9 @@ export default class gameScene extends Phaser.Scene {
 
   preload () {
     this.load.image	('btn', 'assets/ButtonGrey.png');
+    this.load.image	('sprite', 'assets/spr01.png');
+
+    this.load.plugin('rexwarppipelineplugin', 'src/rexwarppipelineplugin.min.js', true);
   }
 
   init() {
@@ -13,21 +16,28 @@ export default class gameScene extends Phaser.Scene {
     this.incrementValue = new LargeNumber('1');
     this.autoInterval = 1000;
     this.countInterval;
-
-
     this.arbCounter = 0;
+    this.scl = 1;
   }
 
   create() {
 
-    // get the main camera so we can manipulate it if needed
+
+
+    this.playerChar = this.add.image(centerX, height -100, 'sprite').setScale(1).setOrigin(0.5,1);
+    var postFxPlugin = this.plugins.get('rexwarppipelineplugin');
+    this.postFxPipeline = postFxPlugin.add(this.playerChar, {
+        speedX: 1,
+        speedY: 2
+    });
+
     this.camera = this.cameras.main;
     log ("GAME SCENE!");
 
     this.numberText = this.add.text(
       centerX,
       250,
-      this.counter.getValue(),
+      "0",
       {
         align: 'center',
         fontFamily: gameConfig.defaultFont,
@@ -38,9 +48,9 @@ export default class gameScene extends Phaser.Scene {
     this.numberText.setOrigin(0.5)
 
     this.multiplierText = this.add.text(
-      centerX + 200,
+      centerX ,
       350,
-      this.multiplier.getValue(),
+      "n x " + this.multiplier.getValue(),
       {
         align: 'center',
         fontFamily: gameConfig.defaultFont,
@@ -48,16 +58,15 @@ export default class gameScene extends Phaser.Scene {
         fontSize: '68px'
       }
     )
-    this.numberText.setOrigin(0.5)
+    this.multiplierText.setOrigin(0.5)
 
-    this.incrementBtn = this.add.image(centerX, centerY, 'btn')
+    this.incrementBtn = this.add.image(100, centerY, 'btn')
     .setInteractive({useHandCursor:true})
     .setOrigin(0.5)
     .on("pointerdown", function(pointer) {
-
         this.incrMainCounter ();
-
     }, this);
+
     this.incrementBtnTxt = this.add.text(
       this.incrementBtn.x,
       this.incrementBtn.y,
@@ -72,20 +81,23 @@ export default class gameScene extends Phaser.Scene {
     this.incrementBtnTxt.setOrigin(0.5)
 
 
-
-    this.multiBtn = this.add.image(centerX, centerY + 100, 'btn')
+    this.multiBtn = this.add.image(100, centerY + 100, 'btn')
     .setInteractive({useHandCursor:true})
     .setOrigin(0.5)
     .on("pointerdown", function(pointer) {
+
+
       this.multiplier.multiply(2);
       this.incrementValue.multiply(this.multiplier.getValue());
-      this.multiplierText.text = "x" + this.multiplier.getValueInENotation();
+      this.multiplierText.text = "n x " + this.multiplier.getValueInENotation();
 
       if (this.multiplier.getValue() > 1000000) {
-        this.multiplierText.text = "x" + this.multiplier.getValueInENotation();
+        this.multiplierText.text = "n x " + this.multiplier.getValueInENotation();
       } else {
-        this.multiplierText.text = "x" + this.multiplier.getValue();
+        this.multiplierText.text = "n x " + this.multiplier.getValue();
       }
+
+      this.multiplierText.text += " (" + this.incrementValue.getValueInENotation() + ")";
 
     }, this);
 
@@ -103,7 +115,7 @@ export default class gameScene extends Phaser.Scene {
     this.multiBtnTxt.setOrigin(0.5)
 
 
-    this.autoBtn = this.add.image(centerX, centerY + 200, 'btn')
+    this.autoBtn = this.add.image(100, centerY + 200, 'btn')
           .setInteractive({useHandCursor:true})
           .setOrigin(0.5)
           .on("pointerdown", function(pointer) {
@@ -127,6 +139,7 @@ export default class gameScene extends Phaser.Scene {
   }
 
   incrMainCounter () {
+    this.scl += 0.01;
     this.counter.increment( this.incrementValue.getValue() );
     if (this.counter.getValue() > 1000000000) {
       this.numberText.text = this.counter.getValueInENotation();
@@ -144,6 +157,7 @@ export default class gameScene extends Phaser.Scene {
 
   update () {
 
+    this.playerChar.setScale ( this.scl );
 
   }
 
