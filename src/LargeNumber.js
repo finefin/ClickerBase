@@ -29,8 +29,18 @@ class LargeNumber {
   }
 
   multiply(by) {
-    this.value *= BigInt(by);
+    this.value = BigInt(this.value * by);
     return this.value;
+  }
+
+  addPercent (perc) {
+
+    let c = (BigInt(perc));// / BigInt(100));
+    let addThis = this.value * c / BigInt(100);
+    this.value += addThis;
+    log ("added ",perc,"% -> ", c, addThis, " --> ", this.value );
+
+    return this.value
   }
 
   divide(by) {
@@ -48,7 +58,6 @@ class LargeNumber {
     const coefficient = valueStr[0] + '.' + valueStr.slice(1, 5);
     return `${coefficient}e+${exponent}`;
   }
-
 
   setValue(newValue) {
     this.value = BigInt(newValue);

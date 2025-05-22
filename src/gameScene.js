@@ -1,164 +1,450 @@
 export default class gameScene extends Phaser.Scene {
-  constructor() {
-    super({key: 'gameScene'});
-  }
+    constructor() {
+        super({
+            key: 'gameScene'
+        });
+    }
 
-  preload () {
-    this.load.image	('btn', 'assets/ButtonGrey.png');
-    this.load.image	('sprite', 'assets/spr01.png');
+    preload() {
+        this.load.image('btn', 'assets/ButtonGrey.png');
+        this.load.image('sprite', 'assets/spr01.png');
+        this.load.plugin('rexwarppipelineplugin', 'src/rexwarppipelineplugin.min.js', true);
 
-    this.load.plugin('rexwarppipelineplugin', 'src/rexwarppipelineplugin.min.js', true);
-  }
+        // load (coin flip) animations, e.g. for animated particles
+        this.load.spritesheet('CoinD', 'assets/Coin/spr_coin_azu.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('CoinP', 'assets/Coin/spr_coin_strip4.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('CoinR', 'assets/Coin/MonedaR.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
 
-  init() {
-    this.counter = new LargeNumber('0');
-    this.multiplier = new LargeNumber('1');
-    this.incrementValue = new LargeNumber('1');
-    this.autoInterval = 1000;
-    this.countInterval;
-    this.arbCounter = 0;
-    this.scl = 1;
-  }
+    }
 
-  create() {
+    init() {
+
+        this.counter = new LargeNumber('100');
+        this.multiplier = new LargeNumber('1');
+        this.incrementValue = new LargeNumber('1');
+
+        this.multiPrice = new LargeNumber('100');
+        this.multiInterval = 1000;
+
+        this.autoInterval = 500; // auto click
+        this.autoPrice = new LargeNumber('100');
+
+        this.autoMultiInterval = 1000;
+        this.autoMultiPrice = new LargeNumber('100000');
+        this.playerPrice = new LargeNumber('1000000');
+
+        this.countInterval; // interval 
+        this.scl = 1;
+
+    }
+
+    create() {
+
+        log("GAME SCENE!");
+
+        this.playerChar1 = this.add.image(centerX - 200, centerY, 'sprite').setScale(1).setOrigin(0.5);
+        this.playerChar2 = this.add.image(centerX + 200, centerY, 'sprite').setScale(1).setOrigin(0.5);
+
+        this.playerChar1.speedX = 1;
+        this.playerChar1.speedY = 1;
+
+        this.playerChar2.speedX = -1;
+        this.playerChar2.speedY = -1;
+
+        this.playerChar2.setVisible(false);
+
+        var postFxPlugin = this.plugins.get('rexwarppipelineplugin');
+        this.postFxPipeline = postFxPlugin.add(this.playerChar1, {
+            speedX: 1,
+            speedY: 1
+        });
+
+        this.postFxPipeline = postFxPlugin.add(this.playerChar2, {
+            speedX: 1,
+            speedY: 1
+        });
+        this.camera = this.cameras.main;
+
+        this.numberText = this.add.text(
+            50,
+            75,
+            "0", {
+                align: 'left',
+                fontFamily: gameConfig.defaultFont,
+                color: '#F0F0F0',
+                fontSize: '168px'
+            }
+        )
+        this.numberText.setDepth(2).setOrigin(0)
+
+        this.multiplierText = this.add.text(
+            50,
+            250,
+            "n x " + this.multiplier.getValue(), {
+                align: 'left',
+                fontFamily: gameConfig.defaultFont,
+                color: '#F0F0F0',
+                fontSize: '68px'
+            }
+        )
+        this.multiplierText.setOrigin(0)
+
+        this.createButtons();
+        this.createParticleEmitter();
+
+        // this.explodeParticles(centerX, 250);
+        // this.camera.shake(50);
+
+    }
+
+    createButtons() {
+
+        this.incrementBtn = this.add.zone(0, 0, width, height)
+            .setInteractive({
+                useHandCursor: true
+            })
+            .setOrigin(0)
+            .on("pointerdown", function(pointer) {
+                this.incrMainCounter();
+            }, this);
+
+        this.incrementBtnTxt = this.add.text(
+            this.incrementBtn.x,
+            this.incrementBtn.y,
+            "CLICK", {
+                align: 'center',
+                fontFamily: gameConfig.defaultFont,
+                color: '#000000',
+                fontSize: '28px'
+            }
+        )
+        this.incrementBtnTxt.setOrigin(0.5)
 
 
+        this.multiBtn = this.add.image(100, centerY + 100, 'btn')
+            .setInteractive({
+                useHandCursor: true
+            })
+            .setOrigin(0.5)
+            .on("pointerdown", function(pointer) {
+                this.cameras.main.shake(50);
+                this.buyMultiplier();
 
-    this.playerChar = this.add.image(centerX, height -100, 'sprite').setScale(1).setOrigin(0.5,1);
-    var postFxPlugin = this.plugins.get('rexwarppipelineplugin');
-    this.postFxPipeline = postFxPlugin.add(this.playerChar, {
-        speedX: 1,
-        speedY: 2
-    });
+            }, this);
 
-    this.camera = this.cameras.main;
-    log ("GAME SCENE!");
-
-    this.numberText = this.add.text(
-      centerX,
-      250,
-      "0",
-      {
-        align: 'center',
-        fontFamily: gameConfig.defaultFont,
-        color: '#F0F0F0',
-        fontSize: '168px'
-      }
-    )
-    this.numberText.setOrigin(0.5)
-
-    this.multiplierText = this.add.text(
-      centerX ,
-      350,
-      "n x " + this.multiplier.getValue(),
-      {
-        align: 'center',
-        fontFamily: gameConfig.defaultFont,
-        color: '#F0F0F0',
-        fontSize: '68px'
-      }
-    )
-    this.multiplierText.setOrigin(0.5)
-
-    this.incrementBtn = this.add.image(100, centerY, 'btn')
-    .setInteractive({useHandCursor:true})
-    .setOrigin(0.5)
-    .on("pointerdown", function(pointer) {
-        this.incrMainCounter ();
-    }, this);
-
-    this.incrementBtnTxt = this.add.text(
-      this.incrementBtn.x,
-      this.incrementBtn.y,
-      "CLICK",
-      {
-        align: 'center',
-        fontFamily: gameConfig.defaultFont,
-        color: '#000000',
-        fontSize: '28px'
-      }
-    )
-    this.incrementBtnTxt.setOrigin(0.5)
+        this.multiBtnTxt = this.add.text(
+            this.multiBtn.x,
+            this.multiBtn.y,
+            "MULTI", {
+                align: 'center',
+                fontFamily: gameConfig.defaultFont,
+                color: '#000000',
+                fontSize: '18px'
+            }
+        )
+        this.multiBtnTxt.setOrigin(0.5)
 
 
-    this.multiBtn = this.add.image(100, centerY + 100, 'btn')
-    .setInteractive({useHandCursor:true})
-    .setOrigin(0.5)
-    .on("pointerdown", function(pointer) {
+        this.autoBtn = this.add.image(100, centerY + 200, 'btn')
+            .setInteractive({
+                useHandCursor: true
+            })
+            .setOrigin(0.5)
+            .on("pointerdown", function(pointer) {
+                this.cameras.main.shake(50);
+                this.buyAutoClick();
+
+            }, this);
+
+        this.autoBtnTxt = this.add.text(
+            this.autoBtn.x,
+            this.autoBtn.y,
+            "AUTOCLICK", {
+                align: 'center',
+                fontFamily: gameConfig.defaultFont,
+                color: '#000000',
+                fontSize: '18px'
+            }
+        )
+        this.autoBtnTxt.setOrigin(0.5)
 
 
-      this.multiplier.multiply(2);
-      this.incrementValue.multiply(this.multiplier.getValue());
-      this.multiplierText.text = "n x " + this.multiplier.getValueInENotation();
+        this.autoMultiBtn = this.add.image(100, centerY + 300, 'btn')
+            .setInteractive({
+                useHandCursor: true
+            })
+            .setOrigin(0.5)
+            .on("pointerdown", function(pointer) {
+                this.cameras.main.shake(50);
+                this.buyAutoMulti();
 
-      if (this.multiplier.getValue() > 1000000) {
-        this.multiplierText.text = "n x " + this.multiplier.getValueInENotation();
-      } else {
-        this.multiplierText.text = "n x " + this.multiplier.getValue();
-      }
-
-      this.multiplierText.text += " (" + this.incrementValue.getValueInENotation() + ")";
-
-    }, this);
-
-    this.multiBtnTxt = this.add.text(
-      this.multiBtn.x,
-      this.multiBtn.y,
-      "MULTI",
-      {
-        align: 'center',
-        fontFamily: gameConfig.defaultFont,
-        color: '#000000',
-        fontSize: '18px'
-      }
-    )
-    this.multiBtnTxt.setOrigin(0.5)
+            }, this);
+        this.autoMultiBtnTxt = this.add.text(
+            this.autoMultiBtn.x,
+            this.autoMultiBtn.y,
+            "AUTO MULTI", {
+                align: 'center',
+                fontFamily: gameConfig.defaultFont,
+                color: '#000000',
+                fontSize: '18px'
+            }
+        )
+        this.autoMultiBtnTxt.setOrigin(0.5)
 
 
-    this.autoBtn = this.add.image(100, centerY + 200, 'btn')
-          .setInteractive({useHandCursor:true})
-          .setOrigin(0.5)
-          .on("pointerdown", function(pointer) {
+        this.buyPlayerBtn = this.add.image(100, centerY + 400, 'btn')
+            .setInteractive({
+                useHandCursor: true
+            })
+            .setOrigin(0.5)
+            .on("pointerdown", function(pointer) {
+                this.cameras.main.shake(50);
+                this.buyObject();
+            }, this);
+        this.buyPlayerBtnTxt = this.add.text(
+            this.buyPlayerBtn.x,
+            this.buyPlayerBtn.y,
+            "BUY OBJ\n" + this.playerPrice.getValueInENotation(), {
+                align: 'center',
+                fontFamily: gameConfig.defaultFont,
+                color: '#000000',
+                fontSize: '18px'
+            }
+        )
+        this.buyPlayerBtnTxt.setOrigin(0.5)
+
+    }
+
+    buyMultiplier() {
+
+        // log (this.multiPrice.getValue())
+
+        if (this.counter.getValue() >= this.multiPrice.getValue()) {
+
+            this.counter.decrement(this.multiPrice.getValue());
+            this.multiPrice.multiply(2n);
+            this.multiplier.increment(1);
+            this.incrementValue.multiply(2n);
+
+            this.multiplierText.text = "n x " + this.multiplier.getValueInENotation();
+
+            if (this.multiplier.getValue() > 1000000) {
+                this.multiplierText.text = "n x " + this.multiplier.getValueInENotation();
+            } else {
+                this.multiplierText.text = "n x " + this.multiplier.getValue();
+            }
+
+            this.multiplierText.text += " (" + this.incrementValue.getValueInENotation() + ")";
+
+        } else {
+            log("not enough C");
+        }
+    }
+
+    buyAutoMulti() {
+
+        if (this.counter.getValue() >= this.autoMultiPrice.getValue()) {
+            this.counter.decrement(this.autoMultiPrice.getValue())
+            this.autoMultiPrice.multiply(2n);
+
+        }else {
+            log("not enough C");
+        }
+    }
+
+    incrMainCounter() {
+        let pExplode = Math.round(Number(this.multiplier.getValue()));
+        if (pExplode > 1000) pExplode = 1000;
+        this.explodeParticles(this.input.activePointer.x, this.input.activePointer.y, pExplode);
+        this.counter.increment(this.incrementValue.getValue());
+    }
+
+    buyAutoClick() {
+
+        if (this.counter.getValue() >= this.autoPrice.getValue()) {
+            this.counter.decrement(this.autoPrice.getValue())
+            this.autoPrice.multiply(2n);
+
             this.autoInterval -= (this.autoInterval * 0.01);
             if (this.autoInterval < 66) this.autoInterval = 1; // max every 2nd frame
-            this.setAutoCounter ( this.autoInterval );
-          }, this);
-    this.autoBtnTxt = this.add.text(
-        this.autoBtn.x,
-        this.autoBtn.y,
-        "AUTOCLICK",
-        {
-          align: 'center',
-          fontFamily: gameConfig.defaultFont,
-          color: '#000000',
-          fontSize: '18px'
+            this.setAutoCounter(this.autoInterval);
+        }else {
+            log("not enough C");
         }
-    )
-    this.autoBtnTxt.setOrigin(0.5)
-
-  }
-
-  incrMainCounter () {
-    this.scl += 0.01;
-    this.counter.increment( this.incrementValue.getValue() );
-    if (this.counter.getValue() > 1000000000) {
-      this.numberText.text = this.counter.getValueInENotation();
-    } else {
-      this.numberText.text = this.counter.getValue();
     }
-  }
 
-  setAutoCounter ( newInterval ) {
-    if (this.countInterval != undefined) clearInterval( this.countInterval );
-    this.countInterval = setInterval ( ()=> {
-      this.incrMainCounter();
-    }, newInterval, this)
-  }
+    setAutoCounter(newInterval) {
+        if (this.countInterval != undefined) clearInterval(this.countInterval);
+        this.countInterval = setInterval(() => {
+            this.incrMainCounter();
+        }, newInterval, this)
+    }
 
-  update () {
+    setAutoMultiCounter(newInterval) {
+        if (this.autoMultiInterval != undefined) clearInterval(this.autoMultiInterval);
+        this.autoMultiInterval = setInterval(() => {
+            this.incrMainCounter();
+        }, newInterval, this)
+    }
 
-    this.playerChar.setScale ( this.scl );
+    buyObject() {
+        if (this.counter.getValue() >= this.playerPrice.getValue()) {
 
-  }
+          this.counter.decrement(this.playerPrice.getValue())
+          this.playerChar2.setVisible(true);
+          this.playerChar2.well = this.particleEmitter.createGravityWell({
+              x: this.playerChar2.x,
+              y: this.playerChar2.y,
+              power: 1000,
+              epsilon: 1000,
+              gravity: 50
+          });
+
+        } else {
+            log("not enough C");
+        }
+    }
+
+    update() {
+
+        //this.playerChar1.setScale ( this.scl );
+        //this.playerChar2.setScale ( this.scl );
+
+        this.playerChar1.x += this.playerChar1.speedX;
+        this.playerChar1.y += this.playerChar1.speedY;
+        this.playerChar1.well.x = this.playerChar1.x;
+        this.playerChar1.well.y = this.playerChar1.y;
+
+        if (this.playerChar2.visible == true){
+          this.playerChar2.x += this.playerChar2.speedX;
+          this.playerChar2.y += this.playerChar2.speedY;
+          this.playerChar2.well.x = this.playerChar2.x;
+          this.playerChar2.well.y = this.playerChar2.y;
+        }
+
+        let bounds = {
+            u: centerY - 300,
+            d: centerY + 300,
+            l: centerX - 300,
+            r: centerX + 300
+        }
+
+        if (this.playerChar1.x > bounds.r || this.playerChar1.x < bounds.l) this.playerChar1.speedX *= -1;
+        if (this.playerChar1.y > bounds.d || this.playerChar1.y < bounds.u) this.playerChar1.speedY *= -1;
+        if (this.playerChar2.x > bounds.r || this.playerChar2.x < bounds.l) this.playerChar2.speedX *= -1;
+        if (this.playerChar2.y > bounds.d || this.playerChar2.y < bounds.u) this.playerChar2.speedY *= -1;
+
+        this.multiBtnTxt.text = "Add PPC\n" + this.multiPrice.getValueInENotation();
+        this.autoBtnTxt.text = "AUTO CLICK\n" + this.autoPrice.getValueInENotation();
+        this.autoMultiBtnTxt.text = "AUTO ADD PPC\n" + this.autoMultiPrice.getValueInENotation();
+
+        if (this.counter.getValue() < this.multiPrice.getValue()) {
+            this.multiBtn.setAlpha(0.3);
+        } else {
+            this.multiBtn.setAlpha(1);
+        }
+
+        if (this.counter.getValue() < this.autoPrice.getValue()) {
+            this.autoBtn.setAlpha(0.3);
+        } else {
+            this.autoBtn.setAlpha(1);
+        }
+
+        if (this.counter.getValue() < this.autoMultiPrice.getValue()) {
+            this.autoMultiBtn.setAlpha(0.3);
+        } else {
+            this.autoMultiBtn.setAlpha(1);
+        }
+
+        if (this.counter.getValue() < this.playerPrice.getValue()) {
+            this.buyPlayerBtn.setAlpha(0.3);
+        } else {
+            this.buyPlayerBtn.setAlpha(1);
+        }
+
+        if (this.counter.getValue() > 1000000000) {
+            this.numberText.text = this.counter.getValueInENotation();
+        } else {
+            this.numberText.text = this.counter.getValue();
+        }
+    }
+
+    // Particles
+    createParticleEmitter() {
+
+        // var coin = this.add.sprite(50, 250, "Coin");
+        // coin.animations.add("flip", [0, 1, 2, 3, 4], 24);
+
+        var rect = new Phaser.Geom.Rectangle(centerX - 150, 0, 300, 200);
+
+        this.anims.create({
+            key: 'flipDa',
+            frames: this.anims.generateFrameNumbers('CoinD', {
+                frames: [0, 1, 2, 3, 4]
+            }),
+            frameRate: 30,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'flipDb',
+            frames: this.anims.generateFrameNumbers('CoinP', {
+                frames: [3, 4, 0, 1, 2]
+            }),
+            frameRate: 30,
+            repeat: -1
+        });
+
+        this.particleEmitter = this.add.particles(0, 0, 'CoinD', {
+            anim: ['flipDa', 'flipDb'],
+            speed: {
+                min: 10,
+                max: 1000,
+                ease: 'Expo.easeOut'
+            },
+            angle: {
+                min: 0,
+                max: 360
+            },
+            scale: {
+                start: 3,
+                end: 0
+            },
+            gravityY: 0,
+            active: false,
+            blendMode: 'ADD',
+            lifespan: 5000
+
+
+        }).setDepth(1)
+
+        this.particleEmitter.on('deathzone', function(emitter, particle, zone) {
+            this.scl += 0.001;
+        }, this)
+
+        this.playerChar1.well = this.particleEmitter.createGravityWell({
+            x: this.playerChar1.x,
+            y: this.playerChar1.y,
+            power: 1000,
+            epsilon: 500,
+            gravity: 50
+        });
+
+
+    }
+
+    explodeParticles(x, y, amount = 50) {
+        this.particleEmitter.resume();
+        this.particleEmitter.explode(amount, x, y);
+    }
 
 }

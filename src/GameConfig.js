@@ -22,6 +22,11 @@ var centerY    = height * 0.5;
 
 let gameData = {
 
-  "mapID" : "aa01",   // the map user wants to play will be chosen in main menu
+    counter :         0,
+    multiplier :      1,
+    incrementValue :  1,
+    autoInterval :    0,
+    scl :             1,
+    multiPrice :      1
 
 }
