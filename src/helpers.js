@@ -683,3 +683,58 @@ function showTweenText(targetScene, x, y, color, text) {
     tweenText.destroy();
   }
 }
+
+
+
+
+/**
+ * Gibt eine Phaser.Vector2-Position für ein Objekt in einer Spirale zurück.
+ * 
+ * @param {'archimedes' | 'logarithmisch' | 'fermat' | 'fibonacci' | 'golden'} spiralform
+ * @param {number} index - Index des Objekts (0 = Mitte)
+ * @param {number} abstand - Abstand oder Skalierungsfaktor (je nach Spiralform unterschiedlich interpretiert)
+ * @param {number} centerX - Mittelpunkt X
+ * @param {number} centerY - Mittelpunkt Y
+ * @returns {Phaser.Math.Vector2} - Absolute Position
+ */
+function getSpiralPosition(spiralform, index, abstand, centerX, centerY) {
+  let angle, radius;
+
+  switch (spiralform) {
+    case 'archimedes':
+      angle = index * 0.5;
+      radius = abstand * index;
+      break;
+
+    case 'logarithmisch':
+      angle = index * 0.5;
+      const b = 0.2; // Spiralweite
+      radius = abstand * Math.exp(b * index);
+      break;
+
+    case 'fermat':
+      // Fermat-Spirale: r = c * sqrt(n), θ = n * π
+      angle = index * Math.PI;
+      radius = abstand * Math.sqrt(index);
+      break;
+
+    case 'fibonacci':
+    case 'golden':
+      const goldenAngle = Phaser.Math.DegToRad(137.5); // ≈ 137.5°
+      angle = index * goldenAngle;
+      radius = abstand * Math.sqrt(index); // wie Fermat, aber mit goldenem Winkel
+      break;
+
+    default:
+      console.warn(`Unbekannte Spiralform: ${spiralform}, fallback auf 'archimedes'.`);
+      angle = index * 0.5;
+      radius = abstand * index;
+      break;
+  }
+
+  const x = centerX + Math.cos(angle) * radius;
+  const y = centerY + Math.sin(angle) * radius;
+
+  return new Phaser.Math.Vector2(x, y);
+}
+

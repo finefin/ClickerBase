@@ -1,3 +1,6 @@
+
+import BlackHole from "./blackHole.js";
+
 export default class gameScene extends Phaser.Scene {
     constructor() {
         super({
@@ -45,12 +48,19 @@ export default class gameScene extends Phaser.Scene {
         this.countInterval; // interval 
         this.scl = 1;
 
+
+        this.blackHoles = [];
+
     }
 
     create() {
 
         log("GAME SCENE!");
 
+        
+
+
+/*
         this.playerChar1 = this.add.image(centerX - 200, centerY, 'sprite').setScale(1).setOrigin(0.5);
         this.playerChar2 = this.add.image(centerX + 200, centerY, 'sprite').setScale(1).setOrigin(0.5);
 
@@ -62,6 +72,7 @@ export default class gameScene extends Phaser.Scene {
 
         this.playerChar2.setVisible(false);
 
+
         var postFxPlugin = this.plugins.get('rexwarppipelineplugin');
         this.postFxPipeline = postFxPlugin.add(this.playerChar1, {
             speedX: 1,
@@ -72,6 +83,9 @@ export default class gameScene extends Phaser.Scene {
             speedX: 1,
             speedY: 1
         });
+*/
+
+
         this.camera = this.cameras.main;
 
         this.numberText = this.add.text(
@@ -97,12 +111,16 @@ export default class gameScene extends Phaser.Scene {
             }
         )
         this.multiplierText.setOrigin(0)
-
         this.createButtons();
         this.createParticleEmitter();
 
-        // this.explodeParticles(centerX, 250);
-        // this.camera.shake(50);
+        let dist = 100;
+        let hAmount = 2;
+        for (let i = 0; i < hAmount; i++ ){
+            let pos = getSpiralPosition('fibonacci', i, dist, centerX, centerY);
+            this.blackHoles[i] = new BlackHole(this,pos.x, pos.y , 'sprite',0,  {speed:{x:1,y:1}});
+            this.blackHoles[i].well.gravity = 100;
+        }
 
     }
 
@@ -221,7 +239,6 @@ export default class gameScene extends Phaser.Scene {
             }
         )
         this.buyPlayerBtnTxt.setOrigin(0.5)
-
     }
 
     buyMultiplier() {
@@ -263,7 +280,7 @@ export default class gameScene extends Phaser.Scene {
 
     incrMainCounter() {
         let pExplode = Math.round(Number(this.multiplier.getValue()));
-        if (pExplode > 1000) pExplode = 1000;
+        if (pExplode > gameData.maxParticles ) pExplode = gameData.maxParticles;
         this.explodeParticles(this.input.activePointer.x, this.input.activePointer.y, pExplode);
         this.counter.increment(this.incrementValue.getValue());
     }
@@ -316,32 +333,9 @@ export default class gameScene extends Phaser.Scene {
 
     update() {
 
-        //this.playerChar1.setScale ( this.scl );
-        //this.playerChar2.setScale ( this.scl );
-
-        this.playerChar1.x += this.playerChar1.speedX;
-        this.playerChar1.y += this.playerChar1.speedY;
-        this.playerChar1.well.x = this.playerChar1.x;
-        this.playerChar1.well.y = this.playerChar1.y;
-
-        if (this.playerChar2.visible == true){
-          this.playerChar2.x += this.playerChar2.speedX;
-          this.playerChar2.y += this.playerChar2.speedY;
-          this.playerChar2.well.x = this.playerChar2.x;
-          this.playerChar2.well.y = this.playerChar2.y;
+        for (let i = 0; i < this.blackHoles.length; i++ ){
+            this.blackHoles[i].update();
         }
-
-        let bounds = {
-            u: centerY - 300,
-            d: centerY + 300,
-            l: centerX - 300,
-            r: centerX + 300
-        }
-
-        if (this.playerChar1.x > bounds.r || this.playerChar1.x < bounds.l) this.playerChar1.speedX *= -1;
-        if (this.playerChar1.y > bounds.d || this.playerChar1.y < bounds.u) this.playerChar1.speedY *= -1;
-        if (this.playerChar2.x > bounds.r || this.playerChar2.x < bounds.l) this.playerChar2.speedX *= -1;
-        if (this.playerChar2.y > bounds.d || this.playerChar2.y < bounds.u) this.playerChar2.speedY *= -1;
 
         this.multiBtnTxt.text = "Add PPC\n" + this.multiPrice.getValueInENotation();
         this.autoBtnTxt.text = "AUTO CLICK\n" + this.autoPrice.getValueInENotation();
@@ -407,8 +401,8 @@ export default class gameScene extends Phaser.Scene {
         this.particleEmitter = this.add.particles(0, 0, 'CoinD', {
             anim: ['flipDa', 'flipDb'],
             speed: {
-                min: 10,
-                max: 1000,
+                min: 0,
+                max: 100,
                 ease: 'Expo.easeOut'
             },
             angle: {
@@ -423,21 +417,12 @@ export default class gameScene extends Phaser.Scene {
             active: false,
             blendMode: 'ADD',
             lifespan: 5000
-
-
         }).setDepth(1)
 
         this.particleEmitter.on('deathzone', function(emitter, particle, zone) {
             this.scl += 0.001;
         }, this)
 
-        this.playerChar1.well = this.particleEmitter.createGravityWell({
-            x: this.playerChar1.x,
-            y: this.playerChar1.y,
-            power: 1000,
-            epsilon: 500,
-            gravity: 50
-        });
 
 
     }

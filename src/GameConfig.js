@@ -12,7 +12,12 @@ const gameConfig = {
   devModeOptions   : {disableConsoleLog :  false, showMouseCoords: false}, //
   startingScene    : "GameScene",
   uiLayer          : "UILayer",
-  keyboardActive   : false
+  keyboardActive   : false,
+
+  
+  maxParticles :      5000
+
+
 }
 
 var width      = gameConfig.screenResolution.width;
