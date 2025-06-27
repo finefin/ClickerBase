@@ -26,12 +26,11 @@ export default class gameScene extends Phaser.Scene {
             frameWidth: 16,
             frameHeight: 16
         });
-
     }
 
     init() {
 
-        this.counter = new LargeNumber('100');
+        this.counter = new LargeNumber('1000000000000');
         this.multiplier = new LargeNumber('1');
         this.incrementValue = new LargeNumber('1');
 
@@ -41,6 +40,8 @@ export default class gameScene extends Phaser.Scene {
         this.autoInterval = 500; // auto click
         this.autoPrice = new LargeNumber('100');
 
+        this.gravityPrice = new LargeNumber ('100');
+
         this.autoMultiInterval = 1000;
         this.autoMultiPrice = new LargeNumber('100000');
         this.playerPrice = new LargeNumber('1000000');
@@ -48,8 +49,8 @@ export default class gameScene extends Phaser.Scene {
         this.countInterval; // interval 
         this.scl = 1;
 
-
         this.blackHoles = [];
+        this.blackHoleIndex = 0;
 
     }
 
@@ -114,12 +115,25 @@ export default class gameScene extends Phaser.Scene {
         this.createButtons();
         this.createParticleEmitter();
 
-        let dist = 100;
-        let hAmount = 2;
+        this.createBlackHoles(1);
+
+
+        //var data = JSON.stringify( {"data":{"content": "Klopfen", "origin":"machine"}} );
+        //log (data)
+
+    }
+
+    createBlackHoles(amount) {
+
+        let dist = 20;
+        let hAmount = amount;
+        
         for (let i = 0; i < hAmount; i++ ){
-            let pos = getSpiralPosition('fibonacci', i, dist, centerX, centerY);
-            this.blackHoles[i] = new BlackHole(this,pos.x, pos.y , 'sprite',0,  {speed:{x:1,y:1}});
-            this.blackHoles[i].well.gravity = 100;
+            let index = this.blackHoleIndex;
+            let pos = getSpiralPosition('fibonacci', index, dist, centerX, centerY);
+            this.blackHoles[index] = new BlackHole(this, pos.x, pos.y , 'sprite',0,  {speed:{x:1,y:1}});
+            this.blackHoles[index].well.gravity = 1;
+            this.blackHoleIndex += 1;
         }
 
     }
@@ -148,7 +162,7 @@ export default class gameScene extends Phaser.Scene {
         this.incrementBtnTxt.setOrigin(0.5)
 
 
-        this.multiBtn = this.add.image(100, centerY + 100, 'btn')
+        this.multiBtn = this.add.image(100, centerY, 'btn')
             .setInteractive({
                 useHandCursor: true
             })
@@ -172,7 +186,7 @@ export default class gameScene extends Phaser.Scene {
         this.multiBtnTxt.setOrigin(0.5)
 
 
-        this.autoBtn = this.add.image(100, centerY + 200, 'btn')
+        this.autoBtn = this.add.image(100, centerY + 100, 'btn')
             .setInteractive({
                 useHandCursor: true
             })
@@ -196,7 +210,7 @@ export default class gameScene extends Phaser.Scene {
         this.autoBtnTxt.setOrigin(0.5)
 
 
-        this.autoMultiBtn = this.add.image(100, centerY + 300, 'btn')
+        this.autoMultiBtn = this.add.image(100, centerY + 200, 'btn')
             .setInteractive({
                 useHandCursor: true
             })
@@ -204,7 +218,6 @@ export default class gameScene extends Phaser.Scene {
             .on("pointerdown", function(pointer) {
                 this.cameras.main.shake(50);
                 this.buyAutoMulti();
-
             }, this);
         this.autoMultiBtnTxt = this.add.text(
             this.autoMultiBtn.x,
@@ -218,8 +231,7 @@ export default class gameScene extends Phaser.Scene {
         )
         this.autoMultiBtnTxt.setOrigin(0.5)
 
-
-        this.buyPlayerBtn = this.add.image(100, centerY + 400, 'btn')
+        this.buyPlayerBtn = this.add.image(100, centerY + 300, 'btn')
             .setInteractive({
                 useHandCursor: true
             })
@@ -239,6 +251,27 @@ export default class gameScene extends Phaser.Scene {
             }
         )
         this.buyPlayerBtnTxt.setOrigin(0.5)
+
+        this.buyGravityBtn = this.add.image(100, centerY + 400, 'btn')
+            .setInteractive({
+                useHandCursor: true
+            })
+            .setOrigin(0.5)
+            .on("pointerdown", function(pointer) {
+                this.cameras.main.shake(50);
+                this.buyGravity();
+            }, this);
+        this.buyGrvityBtnTxt = this.add.text(
+            this.buyGravityBtn.x,
+            this.buyGravityBtn.y,
+            "BUY GRAV\n" + this.gravityPrice.getValueInENotation(), {
+                align: 'center',
+                fontFamily: gameConfig.defaultFont,
+                color: '#000000',
+                fontSize: '18px'
+            }
+        )
+        this.buyGrvityBtnTxt.setOrigin(0.5)
     }
 
     buyMultiplier() {
@@ -268,14 +301,30 @@ export default class gameScene extends Phaser.Scene {
     }
 
     buyAutoMulti() {
-
         if (this.counter.getValue() >= this.autoMultiPrice.getValue()) {
             this.counter.decrement(this.autoMultiPrice.getValue())
             this.autoMultiPrice.multiply(2n);
-
         }else {
             log("not enough C");
         }
+    }
+
+
+    buyGravity() {
+
+        if (this.counter.getValue() >= this.gravityPrice.getValue()) {
+            this.counter.decrement(this.gravityPrice.getValue())
+            this.gravityPrice.multiply(2n);
+
+            for (let i= 0; i < this.blackHoles.length; i++) {
+                this.blackHoles[i].well.gravity += 1;
+            }
+
+
+        } else {
+            log("not enough C");
+        }
+  
     }
 
     incrMainCounter() {
@@ -290,7 +339,6 @@ export default class gameScene extends Phaser.Scene {
         if (this.counter.getValue() >= this.autoPrice.getValue()) {
             this.counter.decrement(this.autoPrice.getValue())
             this.autoPrice.multiply(2n);
-
             this.autoInterval -= (this.autoInterval * 0.01);
             if (this.autoInterval < 66) this.autoInterval = 1; // max every 2nd frame
             this.setAutoCounter(this.autoInterval);
@@ -315,17 +363,8 @@ export default class gameScene extends Phaser.Scene {
 
     buyObject() {
         if (this.counter.getValue() >= this.playerPrice.getValue()) {
-
           this.counter.decrement(this.playerPrice.getValue())
-          this.playerChar2.setVisible(true);
-          this.playerChar2.well = this.particleEmitter.createGravityWell({
-              x: this.playerChar2.x,
-              y: this.playerChar2.y,
-              power: 1000,
-              epsilon: 1000,
-              gravity: 50
-          });
-
+          this.createBlackHoles(1);
         } else {
             log("not enough C");
         }
@@ -340,6 +379,7 @@ export default class gameScene extends Phaser.Scene {
         this.multiBtnTxt.text = "Add PPC\n" + this.multiPrice.getValueInENotation();
         this.autoBtnTxt.text = "AUTO CLICK\n" + this.autoPrice.getValueInENotation();
         this.autoMultiBtnTxt.text = "AUTO ADD PPC\n" + this.autoMultiPrice.getValueInENotation();
+        this.buyGrvityBtnTxt.text = "BUY GRAVITY\n" + this.gravityPrice.getValueInENotation();
 
         if (this.counter.getValue() < this.multiPrice.getValue()) {
             this.multiBtn.setAlpha(0.3);
@@ -369,6 +409,13 @@ export default class gameScene extends Phaser.Scene {
             this.numberText.text = this.counter.getValueInENotation();
         } else {
             this.numberText.text = this.counter.getValue();
+        }
+
+
+        if (this.counter.getValue() < this.gravityPrice.getValue()) {
+            this.buyGravityBtn.setAlpha(0.3);
+        } else {
+            this.buyGravityBtn.setAlpha(1);
         }
     }
 
