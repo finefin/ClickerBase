@@ -701,12 +701,12 @@ function getSpiralPosition(spiralform, index, abstand, centerX, centerY) {
   let angle, radius;
 
   switch (spiralform) {
-    case 'archimedes':
+    case 'arch':
       angle = index * 0.5;
       radius = abstand * index;
       break;
 
-    case 'logarithmisch':
+    case 'log':
       angle = index * 0.5;
       const b = 0.2; // Spiralweite
       radius = abstand * Math.exp(b * index);
@@ -726,7 +726,6 @@ function getSpiralPosition(spiralform, index, abstand, centerX, centerY) {
       break;
 
     default:
-      console.warn(`Unbekannte Spiralform: ${spiralform}, fallback auf 'archimedes'.`);
       angle = index * 0.5;
       radius = abstand * index;
       break;

@@ -30,7 +30,7 @@ export default class gameScene extends Phaser.Scene {
 
     init() {
 
-        this.counter = new LargeNumber('1000000000000');
+        this.counter = new LargeNumber('0');
         this.multiplier = new LargeNumber('1');
         this.incrementValue = new LargeNumber('1');
 
@@ -57,35 +57,6 @@ export default class gameScene extends Phaser.Scene {
     create() {
 
         log("GAME SCENE!");
-
-        
-
-
-/*
-        this.playerChar1 = this.add.image(centerX - 200, centerY, 'sprite').setScale(1).setOrigin(0.5);
-        this.playerChar2 = this.add.image(centerX + 200, centerY, 'sprite').setScale(1).setOrigin(0.5);
-
-        this.playerChar1.speedX = 1;
-        this.playerChar1.speedY = 1;
-
-        this.playerChar2.speedX = -1;
-        this.playerChar2.speedY = -1;
-
-        this.playerChar2.setVisible(false);
-
-
-        var postFxPlugin = this.plugins.get('rexwarppipelineplugin');
-        this.postFxPipeline = postFxPlugin.add(this.playerChar1, {
-            speedX: 1,
-            speedY: 1
-        });
-
-        this.postFxPipeline = postFxPlugin.add(this.playerChar2, {
-            speedX: 1,
-            speedY: 1
-        });
-*/
-
 
         this.camera = this.cameras.main;
 
@@ -125,7 +96,7 @@ export default class gameScene extends Phaser.Scene {
 
     createBlackHoles(amount) {
 
-        let dist = 20;
+        let dist = 5;
         let hAmount = amount;
         
         for (let i = 0; i < hAmount; i++ ){
@@ -230,6 +201,9 @@ export default class gameScene extends Phaser.Scene {
             }
         )
         this.autoMultiBtnTxt.setOrigin(0.5)
+         this.autoMultiBtn.setVisible(false);
+         this.autoMultiBtnTxt.setVisible(false);
+
 
         this.buyPlayerBtn = this.add.image(100, centerY + 300, 'btn')
             .setInteractive({
@@ -340,7 +314,7 @@ export default class gameScene extends Phaser.Scene {
             this.counter.decrement(this.autoPrice.getValue())
             this.autoPrice.multiply(2n);
             this.autoInterval -= (this.autoInterval * 0.01);
-            if (this.autoInterval < 66) this.autoInterval = 1; // max every 2nd frame
+            if (this.autoInterval < 1) this.autoInterval = 1;
             this.setAutoCounter(this.autoInterval);
         }else {
             log("not enough C");
@@ -422,17 +396,14 @@ export default class gameScene extends Phaser.Scene {
     // Particles
     createParticleEmitter() {
 
-        // var coin = this.add.sprite(50, 250, "Coin");
-        // coin.animations.add("flip", [0, 1, 2, 3, 4], 24);
-
-        var rect = new Phaser.Geom.Rectangle(centerX - 150, 0, 300, 200);
+        let parent = this.scene;
 
         this.anims.create({
             key: 'flipDa',
             frames: this.anims.generateFrameNumbers('CoinD', {
                 frames: [0, 1, 2, 3, 4]
             }),
-            frameRate: 30,
+            frameRate: 10,
             repeat: -1
         });
 
@@ -441,21 +412,27 @@ export default class gameScene extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers('CoinP', {
                 frames: [3, 4, 0, 1, 2]
             }),
-            frameRate: 30,
+            frameRate: 10,
             repeat: -1
         });
 
         this.particleEmitter = this.add.particles(0, 0, 'CoinD', {
             anim: ['flipDa', 'flipDb'],
-            speed: {
-                min: 0,
-                max: 100,
-                ease: 'Expo.easeOut'
-            },
-            angle: {
-                min: 0,
-                max: 360
-            },
+                speed: {
+                    min: 10 , 
+                    max: 500 , 
+                    ease: 'Power1' // Beschleunigungskurve für die Geschwindigkeit
+                },
+            angle: (particle) => {
+
+
+                    const angleRad = Phaser.Math.Angle.Between(centerX, centerY, particle.x, particle.y) + 90;
+                    const spread = Phaser.Math.DegToRad(20); // Streuung
+                    const randomOffset = (Math.random() * spread) - (spread / 2);
+
+                    // Gib den Winkel in Grad zurück
+                    return Phaser.Math.RadToDeg(angleRad + randomOffset);
+                },
             scale: {
                 start: 3,
                 end: 0
@@ -463,11 +440,12 @@ export default class gameScene extends Phaser.Scene {
             gravityY: 0,
             active: false,
             blendMode: 'ADD',
-            lifespan: 5000
+            lifespan: 10000
+
         }).setDepth(1)
 
         this.particleEmitter.on('deathzone', function(emitter, particle, zone) {
-            this.scl += 0.001;
+            this.scl += 0.00001;
         }, this)
 
 

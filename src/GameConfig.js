@@ -1,7 +1,7 @@
 const gameConfig = {
   gameTitle        : "GameTitle",
   version          : "0.1b",
-  screenResolution : { width : 1920, height : 1080}, // comments if needed.
+  screenResolution : { width : 2000,  height : 1000}, // comments if needed.
   ratio            : 1,
   sceneFadeTime    : 500,
   gameTimeInSeconds: 60,

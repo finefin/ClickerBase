@@ -5,8 +5,8 @@ var config = {
     scale: {
         mode: Phaser.Scale.FIT,
         parent: 'gameCanvas',
-        width: 1920,
-        height: 1024
+        width: width,
+        height: height
     },
     backgroundColor: '#2d2d2d',
     scene: [levelScene],
