@@ -1,4 +1,6 @@
 import levelScene from "./gameScene.js";
+import textScene from "./textScene.js";
+
 
 var config = {
     type: Phaser.AUTO,
@@ -9,7 +11,7 @@ var config = {
         height: height
     },
     backgroundColor: '#2d2d2d',
-    scene: [levelScene],
+    scene: [levelScene, textScene],
     physics: {
         default: 'arcade',
         arcade: {

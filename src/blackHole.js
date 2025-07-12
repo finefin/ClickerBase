@@ -9,14 +9,12 @@ export default class BlackHole extends Phaser.GameObjects.Sprite {
     scene.add.existing(this);
 	  scene.physics.add.existing(this);
 
-    let zone = new Phaser.Geom.Circle(x, y , 10);
+    let zone = new Phaser.Geom.Circle(x, y , 50);
 
-/*
     this.deathzone = scene.particleEmitter.addDeathZone({
      type: 'onEnter',
      source: zone
     });
-*/
     
     this.well = scene.particleEmitter.createGravityWell({
             x: x,

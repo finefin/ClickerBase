@@ -1,4 +1,3 @@
-
 import BlackHole from "./blackHole.js";
 
 export default class gameScene extends Phaser.Scene {
@@ -40,7 +39,7 @@ export default class gameScene extends Phaser.Scene {
         this.autoInterval = 500; // auto click
         this.autoPrice = new LargeNumber('100');
 
-        this.gravityPrice = new LargeNumber ('100');
+        this.gravityPrice = new LargeNumber('100');
 
         this.autoMultiInterval = 1000;
         this.autoMultiPrice = new LargeNumber('100000');
@@ -85,8 +84,9 @@ export default class gameScene extends Phaser.Scene {
         this.multiplierText.setOrigin(0)
         this.createButtons();
         this.createParticleEmitter();
-
         this.createBlackHoles(1);
+
+        this.scene.launch("TextScene")
 
 
         //var data = JSON.stringify( {"data":{"content": "Klopfen", "origin":"machine"}} );
@@ -98,155 +98,238 @@ export default class gameScene extends Phaser.Scene {
 
         let dist = 5;
         let hAmount = amount;
-        
-        for (let i = 0; i < hAmount; i++ ){
+
+        for (let i = 0; i < hAmount; i++) {
             let index = this.blackHoleIndex;
             let pos = getSpiralPosition('fibonacci', index, dist, centerX, centerY);
-            this.blackHoles[index] = new BlackHole(this, pos.x, pos.y , 'sprite',0,  {speed:{x:1,y:1}});
+            this.blackHoles[index] = new BlackHole(this, pos.x, pos.y, 'sprite', 0, {
+                speed: {
+                    x: 1,
+                    y: 1
+                }
+            });
             this.blackHoles[index].well.gravity = 1;
             this.blackHoleIndex += 1;
         }
 
     }
 
-    createButtons() {
+createButtons() {
+    // Hilfsfunktion zum Erstellen futuristischer Buttons
+    const createFuturisticButton = (x, y, width, height, isMainButton = false) => {
+        const graphics = this.add.graphics();
+        
+        // Gradient-ähnlicher Effekt mit mehreren Rechtecken
+        const baseColor = isMainButton ? 0x001155 : 0x002266;
+        const highlightColor = isMainButton ? 0x0033aa : 0x0044cc;
+        const borderColor = 0x00aaff;
+        
+        // Äußerer Rahmen (Glow-Effekt)
+        graphics.fillStyle(borderColor, 0.3);
+        graphics.fillRoundedRect(x - width/2 - 2, y - height/2 - 2, width + 4, height + 4, 8);
+        
+        // Hauptbutton
+        graphics.fillStyle(baseColor);
+        graphics.fillRoundedRect(x - width/2, y - height/2, width, height, 6);
+        
+        // Highlight oben
+        graphics.fillStyle(highlightColor, 0.7);
+        graphics.fillRoundedRect(x - width/2 + 2, y - height/2 + 2, width - 4, height/3, 4);
+        
+        // Leuchtender Rand
+        graphics.lineStyle(1, borderColor, 0.8);
+        graphics.strokeRoundedRect(x - width/2, y - height/2, width, height, 6);
+        
+        return graphics;
+    };
 
-        this.incrementBtn = this.add.zone(0, 0, width, height)
-            .setInteractive({
-                useHandCursor: true
-            })
-            .setOrigin(0)
-            .on("pointerdown", function(pointer) {
-                this.incrMainCounter();
-            }, this);
+    // Hilfsfunktion für Hover-Effekte (für normale Buttons)
+    const createHoverEffect = (button, graphics, text, originalScale = 1) => {
+        button.on('pointerover', () => {
+            this.tweens.add({
+                targets: [graphics, text],
+                scaleX: originalScale * 1.05,
+                scaleY: originalScale * 1.05,
+                duration: 100,
+                ease: 'Power2'
+            });
+            
+            // Zusätzlicher Glow-Effekt
+            graphics.setTint(0x88ccff);
+        });
+        
+        button.on('pointerout', () => {
+            this.tweens.add({
+                targets: [graphics, text],
+                scaleX: originalScale,
+                scaleY: originalScale,
+                duration: 100,
+                ease: 'Power2'
+            });
+            
+            graphics.clearTint();
+        });
+        
+        button.on('pointerdown', () => {
+            this.tweens.add({
+                targets: [graphics, text],
+                scaleX: originalScale * 0.95,
+                scaleY: originalScale * 0.95,
+                duration: 50,
+                ease: 'Power2',
+                yoyo: true
+            });
+        });
+    };
 
-        this.incrementBtnTxt = this.add.text(
-            this.incrementBtn.x,
-            this.incrementBtn.y,
-            "CLICK", {
-                align: 'center',
-                fontFamily: gameConfig.defaultFont,
-                color: '#000000',
-                fontSize: '28px'
-            }
-        )
-        this.incrementBtnTxt.setOrigin(0.5)
+    // Hauptbutton (Increment) - Zone bleibt bestehen
+    this.incrementBtn = this.add.zone(0, 0, width, height)
+        .setInteractive({
+            useHandCursor: true
+        })
+        .setOrigin(0)
+        .on("pointerdown", function(pointer) {
+            this.incrMainCounter();
+        }, this);
+    
+    
+    this.incrementBtn.on('pointerdown', () => {
+        this.tweens.add({
+            targets: [this.incrementBtnGraphics, this.incrementBtnTxt],
+            scaleX: 0.95,
+            scaleY: 0.95,
+            duration: 50,
+            ease: 'Power2',
+            yoyo: true
+        });
+    });
 
+    // Multi Button
+    this.multiBtnGraphics = createFuturisticButton(100, centerY, 120, 50);
+    this.multiBtn = this.add.zone(100, centerY, 120, 50)
+        .setInteractive({
+            useHandCursor: true
+        })
+        .on("pointerdown", function(pointer) {
+            this.cameras.main.shake(50);
+            this.buyMultiplier();
+        }, this);
 
-        this.multiBtn = this.add.image(100, centerY, 'btn')
-            .setInteractive({
-                useHandCursor: true
-            })
-            .setOrigin(0.5)
-            .on("pointerdown", function(pointer) {
-                this.cameras.main.shake(50);
-                this.buyMultiplier();
-
-            }, this);
-
-        this.multiBtnTxt = this.add.text(
-            this.multiBtn.x,
-            this.multiBtn.y,
-            "MULTI", {
-                align: 'center',
-                fontFamily: gameConfig.defaultFont,
-                color: '#000000',
-                fontSize: '18px'
-            }
-        )
-        this.multiBtnTxt.setOrigin(0.5)
-
-
-        this.autoBtn = this.add.image(100, centerY + 100, 'btn')
-            .setInteractive({
-                useHandCursor: true
-            })
-            .setOrigin(0.5)
-            .on("pointerdown", function(pointer) {
-                this.cameras.main.shake(50);
-                this.buyAutoClick();
-
-            }, this);
-
-        this.autoBtnTxt = this.add.text(
-            this.autoBtn.x,
-            this.autoBtn.y,
-            "AUTOCLICK", {
-                align: 'center',
-                fontFamily: gameConfig.defaultFont,
-                color: '#000000',
-                fontSize: '18px'
-            }
-        )
-        this.autoBtnTxt.setOrigin(0.5)
-
-
-        this.autoMultiBtn = this.add.image(100, centerY + 200, 'btn')
-            .setInteractive({
-                useHandCursor: true
-            })
-            .setOrigin(0.5)
-            .on("pointerdown", function(pointer) {
-                this.cameras.main.shake(50);
-                this.buyAutoMulti();
-            }, this);
-        this.autoMultiBtnTxt = this.add.text(
-            this.autoMultiBtn.x,
-            this.autoMultiBtn.y,
-            "AUTO MULTI", {
-                align: 'center',
-                fontFamily: gameConfig.defaultFont,
-                color: '#000000',
-                fontSize: '18px'
-            }
-        )
-        this.autoMultiBtnTxt.setOrigin(0.5)
-         this.autoMultiBtn.setVisible(false);
-         this.autoMultiBtnTxt.setVisible(false);
+    this.multiBtnTxt = this.add.text(
+        100, centerY,
+        "MULTI", {
+            align: 'center',
+            fontFamily: gameConfig.defaultFont,
+            color: '#00ccff',
+            fontSize: '18px',
+            stroke: '#000044',
+            strokeThickness: 1
+        }
+    ).setOrigin(0.5);
+    
 
 
-        this.buyPlayerBtn = this.add.image(100, centerY + 300, 'btn')
-            .setInteractive({
-                useHandCursor: true
-            })
-            .setOrigin(0.5)
-            .on("pointerdown", function(pointer) {
-                this.cameras.main.shake(50);
-                this.buyObject();
-            }, this);
-        this.buyPlayerBtnTxt = this.add.text(
-            this.buyPlayerBtn.x,
-            this.buyPlayerBtn.y,
-            "BUY OBJ\n" + this.playerPrice.getValueInENotation(), {
-                align: 'center',
-                fontFamily: gameConfig.defaultFont,
-                color: '#000000',
-                fontSize: '18px'
-            }
-        )
-        this.buyPlayerBtnTxt.setOrigin(0.5)
+    // Auto Button
+    this.autoBtnGraphics = createFuturisticButton(100, centerY + 100, 120, 50);
+    this.autoBtn = this.add.zone(100, centerY + 100, 120, 50)
+        .setInteractive({
+            useHandCursor: true
+        })
+        .on("pointerdown", function(pointer) {
+            this.cameras.main.shake(50);
+            this.buyAutoClick();
+        }, this);
 
-        this.buyGravityBtn = this.add.image(100, centerY + 400, 'btn')
-            .setInteractive({
-                useHandCursor: true
-            })
-            .setOrigin(0.5)
-            .on("pointerdown", function(pointer) {
-                this.cameras.main.shake(50);
-                this.buyGravity();
-            }, this);
-        this.buyGrvityBtnTxt = this.add.text(
-            this.buyGravityBtn.x,
-            this.buyGravityBtn.y,
-            "BUY GRAV\n" + this.gravityPrice.getValueInENotation(), {
-                align: 'center',
-                fontFamily: gameConfig.defaultFont,
-                color: '#000000',
-                fontSize: '18px'
-            }
-        )
-        this.buyGrvityBtnTxt.setOrigin(0.5)
-    }
+    this.autoBtnTxt = this.add.text(
+        100, centerY + 100,
+        "AUTOCLICK", {
+            align: 'center',
+            fontFamily: gameConfig.defaultFont,
+            color: '#00ccff',
+            fontSize: '16px',
+            stroke: '#000044',
+            strokeThickness: 1
+        }
+    ).setOrigin(0.5);
+    
+
+    // Auto Multi Button
+    this.autoMultiBtnGraphics = createFuturisticButton(100, centerY + 200, 120, 50);
+    this.autoMultiBtn = this.add.zone(100, centerY + 200, 120, 50)
+        .setInteractive({
+            useHandCursor: true
+        })
+        .on("pointerdown", function(pointer) {
+            this.cameras.main.shake(50);
+            this.buyAutoMulti();
+        }, this);
+
+    this.autoMultiBtnTxt = this.add.text(
+        100, centerY + 200,
+        "AUTO MULTI", {
+            align: 'center',
+            fontFamily: gameConfig.defaultFont,
+            color: '#00ccff',
+            fontSize: '16px',
+            stroke: '#000044',
+            strokeThickness: 1
+        }
+    ).setOrigin(0.5);
+    
+    
+    this.autoMultiBtn.setVisible(false);
+    this.autoMultiBtnTxt.setVisible(false);
+    this.autoMultiBtnGraphics.setVisible(false);
+
+    // Buy Player Button
+    this.buyPlayerBtnGraphics = createFuturisticButton(100, centerY + 300, 120, 60);
+    this.buyPlayerBtn = this.add.zone(100, centerY + 300, 120, 60)
+        .setInteractive({
+            useHandCursor: true
+        })
+        .on("pointerdown", function(pointer) {
+            this.cameras.main.shake(50);
+            this.buyObject();
+        }, this);
+
+    this.buyPlayerBtnTxt = this.add.text(
+        100, centerY + 300,
+        "BUY OBJ\n" + this.playerPrice.getValueInENotation(), {
+            align: 'center',
+            fontFamily: gameConfig.defaultFont,
+            color: '#00ccff',
+            fontSize: '16px',
+            stroke: '#000044',
+            strokeThickness: 1
+        }
+    ).setOrigin(0.5);
+    
+
+
+    // Buy Gravity Button
+    this.buyGravityBtnGraphics = createFuturisticButton(100, centerY + 400, 120, 60);
+    this.buyGravityBtn = this.add.zone(100, centerY + 400, 120, 60)
+        .setInteractive({
+            useHandCursor: true
+        })
+        .on("pointerdown", function(pointer) {
+            this.cameras.main.shake(50);
+            this.buyGravity();
+        }, this);
+
+    this.buyGrvityBtnTxt = this.add.text(
+        100, centerY + 400,
+        "BUY GRAV\n" + this.gravityPrice.getValueInENotation(), {
+            align: 'center',
+            fontFamily: gameConfig.defaultFont,
+            color: '#00ccff',
+            fontSize: '16px',
+            stroke: '#000044',
+            strokeThickness: 1
+        }
+    ).setOrigin(0.5);
+    
+}
 
     buyMultiplier() {
 
@@ -278,7 +361,7 @@ export default class gameScene extends Phaser.Scene {
         if (this.counter.getValue() >= this.autoMultiPrice.getValue()) {
             this.counter.decrement(this.autoMultiPrice.getValue())
             this.autoMultiPrice.multiply(2n);
-        }else {
+        } else {
             log("not enough C");
         }
     }
@@ -290,7 +373,7 @@ export default class gameScene extends Phaser.Scene {
             this.counter.decrement(this.gravityPrice.getValue())
             this.gravityPrice.multiply(2n);
 
-            for (let i= 0; i < this.blackHoles.length; i++) {
+            for (let i = 0; i < this.blackHoles.length; i++) {
                 this.blackHoles[i].well.gravity += 1;
             }
 
@@ -298,12 +381,12 @@ export default class gameScene extends Phaser.Scene {
         } else {
             log("not enough C");
         }
-  
+
     }
 
     incrMainCounter() {
         let pExplode = Math.round(Number(this.multiplier.getValue()));
-        if (pExplode > gameData.maxParticles ) pExplode = gameData.maxParticles;
+        if (pExplode > gameData.maxParticles) pExplode = gameData.maxParticles;
         this.explodeParticles(this.input.activePointer.x, this.input.activePointer.y, pExplode);
         this.counter.increment(this.incrementValue.getValue());
     }
@@ -316,7 +399,7 @@ export default class gameScene extends Phaser.Scene {
             this.autoInterval -= (this.autoInterval * 0.01);
             if (this.autoInterval < 1) this.autoInterval = 1;
             this.setAutoCounter(this.autoInterval);
-        }else {
+        } else {
             log("not enough C");
         }
     }
@@ -337,8 +420,8 @@ export default class gameScene extends Phaser.Scene {
 
     buyObject() {
         if (this.counter.getValue() >= this.playerPrice.getValue()) {
-          this.counter.decrement(this.playerPrice.getValue())
-          this.createBlackHoles(1);
+            this.counter.decrement(this.playerPrice.getValue())
+            this.createBlackHoles(1);
         } else {
             log("not enough C");
         }
@@ -346,7 +429,7 @@ export default class gameScene extends Phaser.Scene {
 
     update() {
 
-        for (let i = 0; i < this.blackHoles.length; i++ ){
+        for (let i = 0; i < this.blackHoles.length; i++) {
             this.blackHoles[i].update();
         }
 
@@ -356,27 +439,27 @@ export default class gameScene extends Phaser.Scene {
         this.buyGrvityBtnTxt.text = "BUY GRAVITY\n" + this.gravityPrice.getValueInENotation();
 
         if (this.counter.getValue() < this.multiPrice.getValue()) {
-            this.multiBtn.setAlpha(0.3);
+            this.multiBtnGraphics.setAlpha(0.3);
         } else {
-            this.multiBtn.setAlpha(1);
+            this.multiBtnGraphics.setAlpha(1);
         }
 
         if (this.counter.getValue() < this.autoPrice.getValue()) {
-            this.autoBtn.setAlpha(0.3);
+            this.autoBtnGraphics.setAlpha(0.3);
         } else {
-            this.autoBtn.setAlpha(1);
+            this.autoBtnGraphics.setAlpha(1);
         }
 
         if (this.counter.getValue() < this.autoMultiPrice.getValue()) {
-            this.autoMultiBtn.setAlpha(0.3);
+            this.autoMultiBtnGraphics.setAlpha(0.3);
         } else {
-            this.autoMultiBtn.setAlpha(1);
+            this.autoMultiBtnGraphics.setAlpha(1);
         }
 
         if (this.counter.getValue() < this.playerPrice.getValue()) {
-            this.buyPlayerBtn.setAlpha(0.3);
+            this.buyPlayerBtnGraphics.setAlpha(0.3);
         } else {
-            this.buyPlayerBtn.setAlpha(1);
+            this.buyPlayerBtnGraphics.setAlpha(1);
         }
 
         if (this.counter.getValue() > 1000000000) {
@@ -387,9 +470,9 @@ export default class gameScene extends Phaser.Scene {
 
 
         if (this.counter.getValue() < this.gravityPrice.getValue()) {
-            this.buyGravityBtn.setAlpha(0.3);
+            this.buyGravityBtnGraphics.setAlpha(0.3);
         } else {
-            this.buyGravityBtn.setAlpha(1);
+            this.buyGravityBtnGraphics.setAlpha(1);
         }
     }
 
@@ -418,21 +501,17 @@ export default class gameScene extends Phaser.Scene {
 
         this.particleEmitter = this.add.particles(0, 0, 'CoinD', {
             anim: ['flipDa', 'flipDb'],
-                speed: {
-                    min: 10 , 
-                    max: 500 , 
-                    ease: 'Power1' // Beschleunigungskurve für die Geschwindigkeit
-                },
+            speed: {
+                min: 10,
+                max: 500,
+                ease: 'Power1' // Beschleunigungskurve für die Geschwindigkeit
+            },
             angle: (particle) => {
-
-
-                    const angleRad = Phaser.Math.Angle.Between(centerX, centerY, particle.x, particle.y) + 90;
-                    const spread = Phaser.Math.DegToRad(20); // Streuung
-                    const randomOffset = (Math.random() * spread) - (spread / 2);
-
-                    // Gib den Winkel in Grad zurück
-                    return Phaser.Math.RadToDeg(angleRad + randomOffset);
-                },
+                const angleRad = Phaser.Math.Angle.Between(centerX, centerY, particle.x, particle.y) + 90;
+                const spread = Phaser.Math.DegToRad(20); // Streuung
+                const randomOffset = (Math.random() * spread) - (spread / 2);
+                return Phaser.Math.RadToDeg(angleRad + randomOffset);
+            },
             scale: {
                 start: 3,
                 end: 0
@@ -440,13 +519,15 @@ export default class gameScene extends Phaser.Scene {
             gravityY: 0,
             active: false,
             blendMode: 'ADD',
-            lifespan: 10000
+            lifespan: 1000
 
         }).setDepth(1)
 
-        this.particleEmitter.on('deathzone', function(emitter, particle, zone) {
-            this.scl += 0.00001;
-        }, this)
+
+        this.particleEmitter.onParticleDeath((particle) => {
+            //log (particle.x,particle.y)  
+            //this.explodeParticles (particle.x, particle.y, 10);          
+        }, this);
 
 
 
