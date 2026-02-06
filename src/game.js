@@ -1,5 +1,5 @@
 import levelScene from "./gameScene.js";
-import textScene from "./textScene.js";
+import textScene from "./manager/textScene.js";
 
 
 var config = {

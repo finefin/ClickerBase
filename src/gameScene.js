@@ -1,10 +1,10 @@
-import BlackHole from "./blackHole.js";
-import PhysicsParticle from "./PhysicsParticle.js";
-import ParticlePoolManager from "./ParticlePoolManager.js";
-import SaveManager from "./SaveManager.js";
-import EconomyManager from "./EconomyManager.js";
-import UIManager from "./UIManager.js";
-import ParticleSystemManager from "./ParticleSystemManager.js";
+import BlackHole from "./manager/blackHole.js";
+import PhysicsParticle from "./manager/PhysicsParticle.js";
+import ParticlePoolManager from "./manager/ParticlePoolManager.js";
+import SaveManager from "./manager/SaveManager.js";
+import EconomyManager from "./manager/EconomyManager.js";
+import UIManager from "./manager/UIManager.js";
+import ParticleSystemManager from "./manager/ParticleSystemManager.js";
 
 export default class gameScene extends Phaser.Scene {
     constructor() {
@@ -16,7 +16,7 @@ export default class gameScene extends Phaser.Scene {
     preload() {
         this.load.image("btn", "assets/ButtonGrey.png");
         this.load.image("sprite", "assets/spr01.png");
-        this.load.plugin("rexwarppipelineplugin", "src/rexwarppipelineplugin.min.js", true);
+        //this.load.plugin("rexwarppipelineplugin", "src/rexwarppipelineplugin.min.js", true);
 
         // load (coin flip) animations, e.g. for animated particles
         this.load.spritesheet("CoinD", "assets/Coin/spr_coin_azu.png", {

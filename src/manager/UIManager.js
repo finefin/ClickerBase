@@ -73,7 +73,7 @@ export default class UIManager {
             });
 
             // Additional glow effect
-            graphics.setTint(0x88ccff);
+            //graphics.setTint(0x88ccff);
         });
 
         button.on("pointerout", () => {
@@ -85,7 +85,7 @@ export default class UIManager {
                 ease: "Power2",
             });
 
-            graphics.clearTint();
+            //graphics.clearTint();
         });
 
         button.on("pointerdown", () => {

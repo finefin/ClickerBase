@@ -6,7 +6,7 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
 
         // Use Matter physics
         scene.matter.add.gameObject(this, {
-            shape: { type: 'circle', radius: 2 },
+            shape: { type: 'circle', radius: 1 },
             restitution: 1, // Perfect bounce
             friction: 0,
             frictionAir: 0,
@@ -14,7 +14,7 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
         });
 
         // Visual properties
-        this.setScale(3);
+        this.setScale(2);
         this.setBlendMode(Phaser.BlendModes.ADD);
         this.setDepth(1);
 
