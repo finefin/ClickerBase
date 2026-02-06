@@ -20,6 +20,16 @@
   <script >
 
     window.onbeforeunload = function (e) {
+      // Save game before closing
+      try {
+        const gameScene = window.game?.scene?.scenes[0];
+        if (gameScene && gameScene.saveGame) {
+          gameScene.saveGame();
+        }
+      } catch (error) {
+        console.log("Could not save on close:", error);
+      }
+
       e = e || window.event;
       if (e) {
         e.returnValue = '?';

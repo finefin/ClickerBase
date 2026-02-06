@@ -10,14 +10,18 @@ var config = {
         width: width,
         height: height
     },
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#000000',
     scene: [levelScene, textScene],
     physics: {
-        default: 'arcade',
-        arcade: {
-            //debug: true
+        default: 'matter',
+        matter: {
+            debug: false,
+            gravity: { y: 0 } // No default gravity, we'll apply custom black hole gravity
         }
     }
 };
 
 var game = new Phaser.Game(config);
+
+// Expose game instance globally for save system
+window.game = game;

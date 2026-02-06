@@ -68,14 +68,14 @@ export default class TextScene extends Phaser.Scene {
                     targets: textObject,
                     scale: {from: 0, to: 2},
                     alpha: 1,
-                    duration: 10000,
+                    duration: 1000,
                     ease: 'Linear',
                     onComplete: () => {
                         // Phase 2: Kurz halten und weiter wachsen
                         this.tweens.add({
                             targets: textObject,
                             scale: {from: 2, to: 4},
-                            duration: 10000,
+                            duration: 1000,
                             ease: 'Linear',
                             onComplete: () => {
                                 // Phase 3: Fade Out
@@ -83,7 +83,7 @@ export default class TextScene extends Phaser.Scene {
                                     targets: textObject,
                                     alpha: 0,
                                     scale: {from: 4, to: 8},
-                                    duration: 10000,
+                                    duration: 1000,
                                     ease: 'Linear',
                                     onComplete: () => {
                                         // Entferne den Text und zeige die nächste Zeile

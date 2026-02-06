@@ -13,11 +13,7 @@ const gameConfig = {
   startingScene    : "GameScene",
   uiLayer          : "UILayer",
   keyboardActive   : false,
-
-  
-  maxParticles :      5000
-
-
+  maxParticles :      10000
 }
 
 var width      = gameConfig.screenResolution.width;
