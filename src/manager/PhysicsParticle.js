@@ -6,42 +6,49 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
 
         // Use Matter physics
         scene.matter.add.gameObject(this, {
-            shape: { type: 'circle', radius: 1 },
-            restitution: 1, // Perfect bounce
+            shape: { type: 'circle', radius: 5 },
+            restitution: 1,
             friction: 0,
             frictionAir: 0,
             mass: 100
         });
 
-        // Visual properties
-        this.setScale(1);
+        this.setScale(2);
         this.setBlendMode(Phaser.BlendModes.ADD);
         this.setDepth(1);
 
-        // Lifecycle
         this.isActive = false;
         this.lifetime = 0;
         this.maxLifetime = 30000; // 30 seconds
+
+        // Fired only when a black hole consumes this particle.
+        // Set via spawn() each time the particle is reused from the pool.
+        this.onKilledByBlackHole = null;
 
         this.setActive(false);
         this.setVisible(false);
     }
 
-    spawn(x, y, velocityX, velocityY, anim) {
+    /**
+     * @param {number}   x
+     * @param {number}   y
+     * @param {number}   velocityX
+     * @param {number}   velocityY
+     * @param {string}   anim
+     * @param {Function} onKilledByBlackHole  - called when a black hole consumes this particle
+     */
+    spawn(x, y, velocityX, velocityY, anim, onKilledByBlackHole = null) {
         this.setActive(true);
         this.setVisible(true);
         this.setPosition(x, y);
 
         if (this.body) {
-            // Matter physics velocity setting
             this.setVelocity(velocityX, velocityY);
         }
 
         this.isActive = true;
         this.lifetime = 0;
-        if (this.anims) {
-            //this.play(anim);
-        }
+        this.onKilledByBlackHole = onKilledByBlackHole;
     }
 
     update(time, delta) {
@@ -50,12 +57,31 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
         this.lifetime += delta;
 
         if (this.lifetime > this.maxLifetime || this.isOffScreen()) {
+            // Expired naturally — no counter reward
             this.kill();
         }
     }
 
+    /** Standard death — lifetime/off-screen. No callback fired. */
     kill() {
+        this._deactivate();
+    }
+
+    /**
+     * Called exclusively by BlackHole when this particle enters the death zone.
+     * Fires the onKilledByBlackHole callback so the economy can count it.
+     */
+    killByBlackHole() {
+        if (this.onKilledByBlackHole) {
+            this.onKilledByBlackHole();
+        }
+        this._deactivate();
+    }
+
+    /** Shared cleanup used by both kill paths. */
+    _deactivate() {
         this.isActive = false;
+        this.onKilledByBlackHole = null;
         this.setActive(false);
         this.setVisible(false);
         this.setPosition(-10000, -10000);

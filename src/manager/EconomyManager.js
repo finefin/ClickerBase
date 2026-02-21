@@ -16,7 +16,7 @@ export default class EconomyManager {
     constructor(initialState = {}) {
         // Main currency and multipliers
         this.counter = new LargeNumber(initialState.counter || "0");
-        this.multiplier = new LargeNumber(initialState.multiplier || "10");
+        this.multiplier = new LargeNumber(initialState.multiplier || "1");
         this.incrementValue = new LargeNumber(initialState.incrementValue || "1");
 
         // Prices for upgrades

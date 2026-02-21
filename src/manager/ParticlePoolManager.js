@@ -7,20 +7,17 @@ export default class ParticlePoolManager {
         this.pool = [];
         this.activeParticles = [];
 
-        // Create initial pool (50 particles, inactive)
         for (let i = 0; i < 50; i++) {
             const particle = new PhysicsParticle(scene, -10000, -10000, 'CoinD');
             this.pool.push(particle);
         }
-
-        // Matter physics handles collisions automatically - no need to set up collider!
     }
 
-    spawn(x, y, velocityX, velocityY, anim = 'flipDa') {
-        let particle = this.getFromPool();
+    spawn(x, y, velocityX, velocityY, anim = 'flipDa', onKilledByBlackHole = null) {
+        const particle = this.getFromPool();
 
         if (particle) {
-            particle.spawn(x, y, velocityX, velocityY, anim);
+            particle.spawn(x, y, velocityX, velocityY, anim, onKilledByBlackHole);
             this.activeParticles.push(particle);
             return particle;
         }
@@ -29,21 +26,19 @@ export default class ParticlePoolManager {
     }
 
     getFromPool() {
-        // Find inactive particle
         for (let i = 0; i < this.pool.length; i++) {
             if (!this.pool[i].isActive) {
                 return this.pool[i];
             }
         }
 
-        // Expand pool if under max
         if (this.pool.length < this.maxParticles) {
             const particle = new PhysicsParticle(this.scene, -10000, -10000, 'CoinD');
             this.pool.push(particle);
             return particle;
         }
 
-        // Pool exhausted - reuse oldest (already active, will be re-spawned)
+        // Pool exhausted — reuse oldest active particle
         return this.activeParticles.shift();
     }
 
@@ -52,15 +47,11 @@ export default class ParticlePoolManager {
             const particle = this.activeParticles[i];
             particle.update(time, delta);
 
-            // particle.setScale( (particle.y/1000) * 2 + 0.5 );
-
             if (!particle.isActive) {
-                // Remove from active tracking
                 this.activeParticles.splice(i, 1);
-                // Move far off-screen so it doesn't interfere
                 particle.setPosition(-10000, -10000);
                 if (particle.body) {
-                    particle.setVelocity(0, 0); // Matter physics uses setVelocity on the sprite
+                    particle.setVelocity(0, 0);
                 }
             }
         }

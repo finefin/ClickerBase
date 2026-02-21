@@ -5,6 +5,7 @@ import SaveManager from "./manager/SaveManager.js";
 import EconomyManager from "./manager/EconomyManager.js";
 import UIManager from "./manager/UIManager.js";
 import ParticleSystemManager from "./manager/ParticleSystemManager.js";
+import OrbitalSpawner from "./manager/OrbitalSpawner.js";
 
 export default class gameScene extends Phaser.Scene {
     constructor() {
@@ -51,6 +52,8 @@ export default class gameScene extends Phaser.Scene {
         this.blackHoles = [];
         this.blackHoleIndex = 0;
 
+        this.orbitalSpawner = null;
+
     }
 
     create() {
@@ -96,12 +99,19 @@ export default class gameScene extends Phaser.Scene {
 
         this.createParticleSystem();
 
+        this.orbitalSpawner = new OrbitalSpawner(this, {
+            radius:     400,   // px from screen center
+            speed:      0.1,   // radians per second (increase to spin faster)
+            startAngle: 0,
+        });
+
+
         // Only create initial black hole if loading didn't restore any
         if (this.blackHoles.length === 0) {
             this.createBlackHoles(1);
         }
 
-        this.scene.launch("TextScene");
+        //this.scene.launch("TextScene");
 
         // Start auto-save (every 30 seconds)
         this.saveManager.startAutoSave(() => this.saveGame(), 30000);
@@ -254,8 +264,16 @@ export default class gameScene extends Phaser.Scene {
     incrMainCounter() {
         let pExplode = Math.round(Number(this.economy.multiplier.getValue()));
         if (pExplode > gameData.maxParticles) pExplode = gameData.maxParticles;
-        this.explodeParticles(this.input.activePointer.x, this.input.activePointer.y, pExplode);
-        this.economy.incrementCounter();
+
+        const spawnPos = this.orbitalSpawner
+            ? this.orbitalSpawner.getPosition()
+            : { x: centerX, y: centerY };
+
+        // Each particle carries a callback; the economy increments only when
+        // a black hole consumes it, not on spawn.
+        this.explodeParticles(spawnPos.x, spawnPos.y, pExplode, () => {
+            this.economy.incrementCounter();
+        });
     }
 
     buyAutoClick() {
@@ -294,7 +312,12 @@ export default class gameScene extends Phaser.Scene {
         }
     }
 
+
     update() {
+
+        if (this.orbitalSpawner) this.orbitalSpawner.update(this.game.loop.delta);
+
+
         // Update black holes
         for (let i = 0; i < this.blackHoles.length; i++) {
             if (this.blackHoles[i]) {
@@ -306,20 +329,22 @@ export default class gameScene extends Phaser.Scene {
         this.particleSystem.update(this.time.now, this.game.loop.delta);
         this.particleSystem.applyGravityFromBlackHoles(this.blackHoles);
 
-        // Update UI through UIManager
+        // Pass prices keyed by priceKey (matches TechTreeConfig node.priceKey)
         this.uiManager.updateButtonTexts({
-            multi: this.economy.multiPrice.getValueInENotation(),
-            auto: this.economy.autoPrice.getValueInENotation(),
-            autoMulti: this.economy.autoMultiPrice.getValueInENotation(),
-            gravity: this.economy.gravityPrice.getValueInENotation()
+            multiPrice:    this.economy.multiPrice.getValueInENotation(),
+            autoPrice:     this.economy.autoPrice.getValueInENotation(),
+            autoMultiPrice: this.economy.autoMultiPrice.getValueInENotation(),
+            gravityPrice:  this.economy.gravityPrice.getValueInENotation(),
+            playerPrice:   this.economy.playerPrice.getValueInENotation(),
         });
 
+        // Pass affordability keyed by callbackKey (matches TechTreeConfig node.callbackKey)
         this.uiManager.updateButtonStates({
-            multi: this.economy.canAfford(this.economy.multiPrice),
-            auto: this.economy.canAfford(this.economy.autoPrice),
-            autoMulti: this.economy.canAfford(this.economy.autoMultiPrice),
-            buyPlayer: this.economy.canAfford(this.economy.playerPrice),
-            buyGravity: this.economy.canAfford(this.economy.gravityPrice)
+            onMulti:     this.economy.canAfford(this.economy.multiPrice),
+            onAuto:      this.economy.canAfford(this.economy.autoPrice),
+            onAutoMulti: this.economy.canAfford(this.economy.autoMultiPrice),
+            onBuyObj:    this.economy.canAfford(this.economy.playerPrice),
+            onBuyGravity: this.economy.canAfford(this.economy.gravityPrice),
         });
 
         this.numberText.text = this.economy.getFormattedCounter();
@@ -349,8 +374,8 @@ export default class gameScene extends Phaser.Scene {
         }
     }
 
-    explodeParticles(x, y, amount = 50) {
-        this.particleSystem.explodeParticles(x, y, amount);
+    explodeParticles(x, y, amount = 50, onKilledByBlackHole = null) {
+        this.particleSystem.explodeParticles(x, y, amount, onKilledByBlackHole);
     }
 
     applyBlackHoleGravity() {
