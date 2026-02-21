@@ -5,7 +5,7 @@ const gameData = {
     maxParticles: 10000,
 
     // Auto-save interval (milliseconds)
-    autoSaveInterval: 30000, // 30 seconds
+    autoSaveInterval: 60000, // 60 seconds
 
     // Initial values
     initialCounter: "0",
@@ -13,7 +13,7 @@ const gameData = {
     initialIncrementValue: "1",
 
     // Upgrade prices
-    initialMultiPrice: "100",
+    initialMultiPrice: "10",
     initialAutoPrice: "100",
     initialGravityPrice: "100",
     initialAutoMultiPrice: "100000",

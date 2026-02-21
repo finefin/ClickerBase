@@ -35,7 +35,15 @@ export default class gameScene extends Phaser.Scene {
 
     init() {
         // Initialize economy manager
-        this.economy = new EconomyManager();
+
+        // TODO use initial GameData!
+
+        this.economy = new EconomyManager( 
+            {
+
+
+
+            } );
 
         this.countInterval; // interval
         this.scl = 1;
@@ -43,7 +51,6 @@ export default class gameScene extends Phaser.Scene {
         this.blackHoles = [];
         this.blackHoleIndex = 0;
 
-        // Particle physics - removed, now handled by ParticlePoolManager
     }
 
     create() {
@@ -114,8 +121,6 @@ export default class gameScene extends Phaser.Scene {
             }
         });
 
-        //var data = JSON.stringify( {"data":{"content": "Kloppen", "origin":"machine"}} );
-        //log (data)
     }
 
     // ============== SAVE SYSTEM ==============

@@ -81,7 +81,7 @@ export default class ParticleSystemManager {
             const finalAngle = angleRad + randomOffset + Math.PI / 2;
 
             // Higher velocity so particles shoot out visibly
-            const speed = Phaser.Math.Between(2, 5);
+            const speed = Phaser.Math.Between(1, 2);
             const velocityX = Math.cos(finalAngle) * speed;
             const velocityY = Math.sin(finalAngle) * speed;
 

@@ -10,11 +10,11 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
             restitution: 1, // Perfect bounce
             friction: 0,
             frictionAir: 0,
-            mass: 1
+            mass: 100
         });
 
         // Visual properties
-        this.setScale(2);
+        this.setScale(1);
         this.setBlendMode(Phaser.BlendModes.ADD);
         this.setDepth(1);
 
@@ -40,7 +40,7 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
         this.isActive = true;
         this.lifetime = 0;
         if (this.anims) {
-            this.play(anim);
+            //this.play(anim);
         }
     }
 
@@ -48,8 +48,6 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
         if (!this.isActive) return;
 
         this.lifetime += delta;
-
-        
 
         if (this.lifetime > this.maxLifetime || this.isOffScreen()) {
             this.kill();
