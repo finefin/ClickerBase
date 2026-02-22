@@ -256,7 +256,7 @@ export default class gameScene extends Phaser.Scene {
         if (this.economy.buyGravity()) {
             // Apply gravity upgrade to all black holes
             for (let i = 0; i < this.blackHoles.length; i++) {
-                this.blackHoles[i].well.gravity += 100;
+                this.blackHoles[i].well.gravity += 1;
             }
         }
     }

@@ -153,7 +153,7 @@ const TechTreeConfig = Object.freeze({
         {
             id:          "gravity_1",
             label:       "Gravity+",
-            description: "+100 gravity\nto all holes",
+            description: "+1 gravity",
             branch:      "gravity",
             parent:      "blackhole_1",
             priceKey:    "gravityPrice",

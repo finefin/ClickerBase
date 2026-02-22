@@ -6,14 +6,14 @@ export default class PhysicsParticle extends Phaser.GameObjects.Sprite {
 
         // Use Matter physics
         scene.matter.add.gameObject(this, {
-            shape: { type: 'circle', radius: 5 },
+            shape: { type: 'circle', radius: 2 },
             restitution: 1,
             friction: 0,
             frictionAir: 0,
-            mass: 100
+            mass: 10
         });
 
-        this.setScale(2);
+        this.setScale(1);
         this.setBlendMode(Phaser.BlendModes.ADD);
         this.setDepth(1);
 

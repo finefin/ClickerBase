@@ -2,7 +2,7 @@
 
 const gameData = {
     // Particle system limits
-    maxParticles: 10000,
+    maxParticles: 100,
 
     // Auto-save interval (milliseconds)
     autoSaveInterval: 60000, // 60 seconds
@@ -20,8 +20,8 @@ const gameData = {
     initialPlayerPrice: "1000000",
 
     // Intervals
-    initialAutoInterval: 500,
-    initialMultiInterval: 1000,
+    initialAutoInterval: 1500,
+    initialMultiInterval: 1500,
     initialAutoMultiInterval: 1000,
 
     // Upgrade scaling

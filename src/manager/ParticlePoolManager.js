@@ -1,7 +1,7 @@
 import PhysicsParticle from './PhysicsParticle.js';
 
 export default class ParticlePoolManager {
-    constructor(scene, maxParticles = 5000) {
+    constructor(scene, maxParticles = 500) {
         this.scene = scene;
         this.maxParticles = maxParticles;
         this.pool = [];

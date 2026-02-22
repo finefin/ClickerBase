@@ -27,7 +27,7 @@ export default class BlackHole extends Phaser.GameObjects.Sprite {
             // Damping applied only to the radial (inward/outward) velocity component.
             // Bleeds off elastic bouncing while preserving the spin.
             // 1.0 = no damping, 0.95 = aggressive damping.
-            radialDamping: 0.98,
+            radialDamping: 0.96,
 
             // Kill zone radius (px)
             killRadius: 20,
